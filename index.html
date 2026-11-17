@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deadlock Tracker</title>
+  <meta name="description" content="Deadlock Tracker : profil joueur, rang, historique de matchs et détail des parties.">
+  <meta name="theme-color" content="#0e0d0b">
+  <link rel="preconnect" href="https://api.deadlock-api.com">
+  <link rel="preconnect" href="https://assets-bucket.deadlock-api.com">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap bar">
+      <a class="logo" href="#/">DEAD<b>LOCK</b> Tracker</a>
+      <form class="mini-search" data-form="search" role="search">
+        <input name="q" placeholder="Pseudo ou SteamID" autocomplete="off" autocapitalize="off" aria-label="Rechercher un joueur">
+      </form>
+    </div>
+  </header>
+  <main class="wrap" id="app" aria-live="polite"></main>
+  <footer>
+    <div class="wrap">Données : <a href="https://deadlock-api.com" target="_blank" rel="noopener">Deadlock API</a>.
+      Projet communautaire non affilié à Valve. Deadlock est une marque de Valve Corporation.</div>
+  </footer>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
