@@ -59,11 +59,12 @@ export const heroName = id => heroes.get(id)?.name || `Héros ${id}`;
 export const heroImg = id => LOCAL_IMAGES.heroes[id] || heroes.get(id)?.img || '';
 export const itemImg = id => LOCAL_IMAGES.items[id] || items.get(id)?.img || '';
 
-// badge = palier * 10 + sous-rang (ex. 44 = Sentinel 4)
+// badge = palier * 10 + sous-rang (ex. 44 = Sentinel IV). Sous-rangs affichés I à VI comme en jeu.
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI'];
 export function rankOf(badge) {
   if (!badge) return { tier: 0, sub: 0, name: ranks.get(0)?.name || 'Non classé', img: rankImg(0, 0) };
   const tier = Math.floor(badge / 10), sub = badge % 10;
-  return { tier, sub, name: `${ranks.get(tier)?.name || 'Rang ' + tier} ${sub || ''}`.trim(), img: rankImg(tier, sub) };
+  return { tier, sub, name: `${ranks.get(tier)?.name || 'Rang ' + tier} ${ROMAN[sub] || ''}`.trim(), img: rankImg(tier, sub) };
 }
 function rankImg(tier, sub) {
   const local = LOCAL_IMAGES.ranks[`${tier}-${sub}`] || LOCAL_IMAGES.ranks[tier];
