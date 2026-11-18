@@ -1,14 +1,17 @@
 import { api } from '../api.js';
 import { heroName, items, rankOf } from '../assets.js';
-import { esc, num, kfmt, dur, ago, dateTime, teamNum, heroIcon, itemIcon, table } from '../ui.js';
+import { esc, num, kfmt, dur, ago, dateTime, teamNum, heroIcon, itemIcon, table, skeleton } from '../ui.js';
 
 // Depuis la mise à jour du 22 janvier 2026 : l'équipe 0 (ex-Amber Hand) est The Hidden King, l'équipe 1 (ex-Sapphire Flame) The Archmother.
 const TEAMS = [{ name: 'The Hidden King', cls: 'amber' }, { name: 'The Archmother', cls: 'sapphire' }];
 const SLOTS = [['weapon', 'Arme'], ['vitality', 'Vitalité'], ['spirit', 'Esprit']];
 
 // #/match/<id>[/<account_id du joueur dont on montre la timeline>]
-export async function match([id, focus]) {
+export const prefetchMatch = id => api(`/v1/matches/${id}/metadata`, {}, 600_000).catch(() => {});
+
+export async function match([id, focus], paint) {
   if (!/^\d+$/.test(id || '')) throw new Error('Identifiant de match invalide.');
+  paint?.(`<h1>Match ${esc(id)}</h1><p class="sub">Chargement du détail de la partie…</p>${skeleton(6)}`);
   const d = await api(`/v1/matches/${id}/metadata`, {}, 600_000);
   const mi = d.match_info || d;
   const P = mi.players || [];
