@@ -47,17 +47,21 @@ export function prefetchPlayer(id) {
 
 export async function player([id, tab = 'matchs'], paint) {
   if (!/^\d+$/.test(id || '')) throw new Error('Identifiant de joueur invalide.');
-  const steamP = settle(api(...Q.steam(id)));
-  const rankP = settle(api(...Q.rank(id)));
-  const statsP = settle(api(...Q.stats(id)));
-  const histP = settle(api(...Q.hist(id)));
-
-  // 1er affichage dès que le profil, le rang et les stats (légers) sont là ; l'historique (lourd) suit.
-  const [steam, rank, hstats] = await Promise.all([steamP, rankP, statsP]);
-  const ctx = { id, tab, steam, rank, hstats };
-  if (!peek(...Q.hist(id))) paint?.(render(ctx, null, null));
-  const hist = await histP;
-  if (hist.status === 'rejected' && hstats.status === 'rejected') throw hist.reason;
+  // Chaque bloc s'affiche dès que sa donnée arrive : sur un compte jamais consulté, l'API peut mettre
+  // ~1 s pour le profil, ~5 s pour l'historique et plus de 10 s pour les stats par héros.
+  const ctx = { id, tab, steam: null, rank: null, hstats: null };
+  let hist = null;
+  const P = {
+    steam: settle(api(...Q.steam(id))), rank: settle(api(...Q.rank(id))),
+    hstats: settle(api(...Q.stats(id))), hist: settle(api(...Q.hist(id))),
+  };
+  for (const [k, pr] of Object.entries(P)) pr.then(v => {
+    if (k === 'hist') hist = v; else ctx[k] = v;
+    paint?.(render(ctx, hist, null));
+  });
+  await Promise.all(Object.values(P));
+  if (hist.status === 'rejected' && ctx.hstats.status === 'rejected') throw hist.reason;
+  const hstats = ctx.hstats;
 
   const known = (Array.isArray(hstats.value) ? hstats.value : []).reduce((s, r) => s + (r.matches_played || 0), 0);
   const histLen = Array.isArray(hist.value) ? hist.value.length : 0;
@@ -71,7 +75,7 @@ export async function player([id, tab = 'matchs'], paint) {
 }
 
 function render({ id, tab, steam, rank, hstats }, hist, metaList, completing = false) {
-  const p = steam.value?.[0] || {};
+  const p = steam?.value?.[0] || {};
   const name = p.personaname || `Joueur ${id}`;
   if (p.personaname) rememberProfile({ id, name, av: p.avatarmedium || '' });
 
@@ -82,7 +86,7 @@ function render({ id, tab, steam, rank, hstats }, hist, metaList, completing = f
   const H = [...byId.values()].sort((a, b) => b.start_time - a.start_time);
 
   // Totaux : les stats par héros couvrent tous les matchs connus de l'API.
-  const HS = Array.isArray(hstats.value) ? hstats.value : [];
+  const HS = Array.isArray(hstats?.value) ? hstats.value : [];
   const sumHS = k => HS.reduce((s, r) => s + (r[k] || 0), 0);
   const totalM = sumHS('matches_played');
   const scored = H.filter(m => outcome(m) !== 'n');
@@ -93,7 +97,9 @@ function render({ id, tab, steam, rank, hstats }, hist, metaList, completing = f
         k: H.reduce((s, m) => s + m.player_kills, 0), d: H.reduce((s, m) => s + m.player_deaths, 0), a: H.reduce((s, m) => s + m.player_assists, 0),
         spm: H.reduce((s, m) => s + m.net_worth, 0) / Math.max(1, H.reduce((s, m) => s + m.match_duration_s, 0) / 60) };
 
-  const r = rank.value || {};
+  const r = rank?.value || {};
+  const dash = '<span class="muted">…</span>';
+  const ready = H.length || HS.length; // de quoi calculer des totaux
   const last20 = scored.slice(0, 20);
   const lw = last20.filter(m => outcome(m) === 'w').length;
 
@@ -106,10 +112,11 @@ function render({ id, tab, steam, rank, hstats }, hist, metaList, completing = f
     ${img(p.avatarfull || p.avatarmedium, 'av', name, 76)}
     <div class="who"><h1>${esc(name)}</h1>
       <p class="sub" style="margin:0">ID ${esc(id)}${p.countrycode ? ' · ' + esc(p.countrycode) : ''}${p.profileurl ? ` · <a class="acc" href="${esc(p.profileurl)}" target="_blank" rel="noopener">Profil Steam</a>` : ''}</p></div>
-    <div class="card">${rank.status === 'rejected' ? '<span class="muted">Rang indisponible</span>' : badge(r.badge)}</div></div>
+    <div class="card">${!rank ? '<span class="muted">Rang…</span>' : rank.status === 'rejected' ? '<span class="muted">Rang indisponible</span>' : badge(r.badge)}</div></div>
   <div class="grid g4" style="margin-top:16px">
-    ${stat('Matchs', num(T.m))}${stat('Victoires', pct(T.w, T.m), wrCls(T.w, T.m))}
-    ${stat('KDA', kda(T.k, T.d, T.a))}${stat('Âmes / min', T.spm ? num(T.spm) : '—')}</div>
+    ${stat('Matchs', ready ? num(T.m) : dash)}${stat('Victoires', ready ? pct(T.w, T.m) : dash, wrCls(T.w, T.m))}
+    ${stat('KDA', ready ? kda(T.k, T.d, T.a) : dash)}${stat('Âmes / min', T.spm ? num(T.spm) : (ready ? '—' : dash))}</div>
+  ${hist && !hstats ? '<p class="muted" style="font-size:13px;margin:8px 0 0">Totaux calculés sur l’historique ; statistiques complètes en cours de chargement…</p>' : ''}
   ${note}
   ${last20.length ? `<h2>Forme récente <small>${lw} V – ${last20.length - lw} D</small></h2>
     <div class="card"><div class="form">${last20.slice().reverse().map(m => `<i class="${outcome(m) === 'w' ? 'w' : ''}"></i>`).join('')}</div></div>` : ''}
@@ -118,7 +125,7 @@ function render({ id, tab, steam, rank, hstats }, hist, metaList, completing = f
     <a class="chip ${tab === 'matchs' ? 'on' : ''}" href="#/player/${id}/matchs">Matchs</a>
     <a class="chip ${tab === 'heros' ? 'on' : ''}" href="#/player/${id}/heros">Héros</a></div>`;
 
-  if (tab === 'heros') return header + heroTable(HS);
+  if (tab === 'heros') return header + (hstats ? heroTable(HS) : skeleton(5));
   return header + (hist ? matchList(H, id) : skeleton(5));
 }
 
