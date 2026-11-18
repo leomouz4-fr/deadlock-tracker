@@ -1,5 +1,6 @@
 import { api, parseAccount } from '../api.js';
 import { esc, img, num, badge } from '../ui.js';
+import { topBlock } from './top.js';
 
 export function recentProfiles() {
   try { return JSON.parse(localStorage.getItem('dlt:recent')) || []; } catch { return []; }
@@ -23,7 +24,8 @@ export async function home() {
   ${searchForm()}
   <p class="muted" style="font-size:13px;margin:0">Astuce : le SteamID ou l’URL /profiles/7656… est le plus fiable. Les URL personnalisées (/id/…) ne sont pas reconnues.</p>
   ${recent.length ? `<h2>Profils récents</h2><div class="list">${recent.map(p =>
-    `<a class="row" href="#/player/${p.id}">${img(p.av, 'hi', '', 36)}<span class="grow"><span class="name">${esc(p.name)}</span></span><span class="muted">›</span></a>`).join('')}</div>` : ''}`;
+    `<a class="row" href="#/player/${p.id}">${img(p.av, 'hi', '', 36)}<span class="grow"><span class="name">${esc(p.name)}</span></span><span class="muted">›</span></a>`).join('')}</div>` : ''}
+  ${await topBlock()}`;
 }
 
 export async function search([q = '']) {

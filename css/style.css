@@ -75,6 +75,11 @@ a.row:hover { background: var(--panel2); color: inherit; }
 .row .grow { flex: 1; min-width: 0; }
 .row .name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 
+/* classement */
+.lb .place { width: 30px; text-align: center; font: 700 16px var(--display); color: var(--muted); flex: none; }
+.lb .place.p1 { color: #e8c15a; } .lb .place.p2 { color: #c9ccd1; } .lb .place.p3 { color: #c98a55; }
+.lb .heroes { display: flex; gap: 3px; flex: none; }
+
 /* profil */
 .profile { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
 .profile .av { width: 76px; height: 76px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel2); }

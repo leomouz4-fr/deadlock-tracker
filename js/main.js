@@ -5,8 +5,9 @@ import { skeleton, errorBox, installImageFallback, onSortClick } from './ui.js';
 import { home, search } from './views/home.js';
 import { player, state as playerState } from './views/player.js';
 import { match } from './views/match.js';
+import { topPlayer, setRegion } from './views/top.js';
 
-const views = { '': home, search, player, match };
+const views = { '': home, search, player, match, top: topPlayer };
 const app = document.getElementById('app');
 let navToken = 0, lastHash = null;
 
@@ -50,6 +51,8 @@ document.addEventListener('change', e => {
 
 document.addEventListener('click', e => {
   if (onSortClick(e.target)) return;
+  const region = e.target.closest('[data-region]')?.dataset.region;
+  if (region) { setRegion(region); route(); return; }
   const act = e.target.closest('[data-act]')?.dataset.act;
   if (act === 'more') { playerState.limit += 30; route(); }
   if (act === 'retry') { clearCache(); route(); }
