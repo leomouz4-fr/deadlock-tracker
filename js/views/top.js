@@ -17,29 +17,31 @@ export function setRegion(r) {
   try { localStorage.setItem('dlt:region', r); } catch { /* rien */ }
 }
 
-const leaderboard = region => api('/v1/leaderboard/' + region, {}, 600_000).then(d => (d.entries || []).slice(0, TOP));
+export const leaderboard = (region, hero) => api('/v1/leaderboard/' + region + (hero ? '/' + hero : ''), {}, 600_000).then(d => (d.entries || []).slice(0, TOP));
 
-// Bloc affiché sur l'accueil.
-export async function topBlock() {
+// Bloc affiché sur l'accueil (ou sur la page d'un héros si hero est donné).
+export async function topBlock(hero) {
   const region = currentRegion();
   let rows, error;
-  try { rows = await leaderboard(region); } catch (e) { error = e; }
+  try { rows = await leaderboard(region, hero); } catch (e) { error = e; }
   const tabs = REGIONS.map(r => `<button type="button" class="chip ${r.id === region ? 'on' : ''}" data-region="${r.id}">${r.label}</button>`).join('');
   const body = error
     ? `<div class="card err"><b>Classement indisponible.</b> <span class="muted">${esc(error.message)}</span></div>`
-    : `<div class="list lb">${rows.map(e => `<a class="row" href="#/top/${region}/${e.rank}">
+    : `<div class="list lb">${rows.map(e => `<a class="row" href="#/top/${region}/${e.rank}${hero ? '/' + hero : ''}">
         <span class="place ${e.rank <= 3 ? 'p' + e.rank : ''}">${e.rank}</span>
         <span class="grow"><span class="name">${esc(e.account_name || 'Anonyme')}</span></span>
         <span class="heroes">${(e.top_hero_ids || []).slice(0, 3).map(h => heroIcon(h, true)).join('')}</span></a>`).join('')
-      || '<div class="row muted">Aucun joueur classé pour le moment.</div>'}</div>`;
-  return `<h2>Top ${TOP} des joueurs <small>classement officiel par région</small></h2>
+      || '<div class="row muted">Aucun joueur classé sur ce héros dans cette région pour le moment.</div>'}</div>`;
+  const title = hero ? `Meilleurs joueurs <small>classement officiel du héros · ${rows?.length ?? 0} joueur(s)</small>`
+    : `Top ${TOP} des joueurs <small>classement officiel par région</small>`;
+  return `<h2>${title}</h2>
     <div class="chips" style="margin-bottom:12px">${tabs}</div>${body}`;
 }
 
 // #/top/<région>/<place> : retrouve le compte Steam derrière une ligne du classement.
-export async function topPlayer([region, place]) {
+export async function topPlayer([region, place, hero]) {
   if (!REGIONS.some(r => r.id === region)) throw new Error('Région inconnue.');
-  const entry = (await leaderboard(region)).find(e => String(e.rank) === String(place));
+  const entry = (await leaderboard(region, hero)).find(e => String(e.rank) === String(place));
   if (!entry) throw new Error('Ce joueur n’est plus dans le top ' + TOP + '.');
   const ids = (entry.possible_account_ids || []).slice(0, 500);
   if (!ids.length) return notFound(entry, region);
