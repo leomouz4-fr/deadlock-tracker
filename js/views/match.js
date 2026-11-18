@@ -2,7 +2,8 @@ import { api } from '../api.js';
 import { heroName, items, rankOf } from '../assets.js';
 import { esc, num, kfmt, dur, ago, dateTime, teamNum, heroIcon, itemIcon, table } from '../ui.js';
 
-const TEAMS = [{ name: 'Main d’Ambre', cls: 'amber' }, { name: 'Flamme Saphir', cls: 'sapphire' }];
+// Depuis la mise à jour du 22 janvier 2026 : l'équipe 0 (ex-Amber Hand) est The Hidden King, l'équipe 1 (ex-Sapphire Flame) The Archmother.
+const TEAMS = [{ name: 'The Hidden King', cls: 'amber' }, { name: 'The Archmother', cls: 'sapphire' }];
 
 export async function match([id]) {
   if (!/^\d+$/.test(id || '')) throw new Error('Identifiant de match invalide.');
