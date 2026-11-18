@@ -88,10 +88,10 @@ export async function player([id, tab = 'matchs']) {
     <a class="chip ${tab === 'matchs' ? 'on' : ''}" href="#/player/${id}/matchs">Matchs</a>
     <a class="chip ${tab === 'heros' ? 'on' : ''}" href="#/player/${id}/heros">Héros</a></div>`;
 
-  return header + (tab === 'heros' ? heroTable(HS) : matchList(H));
+  return header + (tab === 'heros' ? heroTable(HS) : matchList(H, id));
 }
 
-function matchList(H) {
+function matchList(H, id) {
   const heroOpts = [...new Set(H.map(m => m.hero_id))].sort((a, b) => heroName(a).localeCompare(heroName(b)));
   const list = H.filter(m => !state.hero || String(m.hero_id) === state.hero);
   return `<div class="controls"><select data-filter="hero" aria-label="Filtrer par héros">
@@ -99,7 +99,7 @@ function matchList(H) {
   <div class="list">${list.slice(0, state.limit).map(m => {
     const o = outcome(m);
     const label = { w: 'Victoire', l: 'Défaite', n: 'Non comptabilisé' }[o];
-    return `<a class="m ${o === 'w' ? 'w' : o === 'n' ? 'n' : ''}" href="#/match/${m.match_id}"><span class="edge"></span>${heroIcon(m.hero_id)}
+    return `<a class="m ${o === 'w' ? 'w' : o === 'n' ? 'n' : ''}" href="#/match/${m.match_id}/${id}"><span class="edge"></span>${heroIcon(m.hero_id)}
       <span><span class="t ${o === 'w' ? 'win' : o === 'l' ? 'loss' : 'muted'}">${label}</span> <span class="t">· ${esc(heroName(m.hero_id))}</span><br>
       <span class="d">${m.player_kills}/${m.player_deaths}/${m.player_assists} · ${kfmt(m.net_worth)} âmes · ${m.last_hits} LH${m.hero_level ? ' · niv. ' + m.hero_level : ''}${m.ranked_display_badge ? ' · ' + esc(rankOf(m.ranked_display_badge).name) : ''}</span></span>
       <span class="r">${dur(m.match_duration_s)}${m.ranked_delta ? ` <b class="${m.ranked_delta > 0 ? 'win' : 'loss'}">${m.ranked_delta > 0 ? '+' : ''}${m.ranked_delta}</b>` : ''}<br><span class="d">${ago(m.start_time)}</span></span></a>`;
