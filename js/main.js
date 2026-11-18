@@ -3,8 +3,8 @@ import { parseAccount, clearCache } from './api.js';
 import { loadAssets, findHero } from './assets.js';
 import { skeleton, errorBox, installImageFallback, onSortClick } from './ui.js';
 import { home, search } from './views/home.js';
-import { player, state as playerState } from './views/player.js';
-import { match } from './views/match.js';
+import { player, state as playerState, prefetchPlayer } from './views/player.js';
+import { match, prefetchMatch } from './views/match.js';
 import { topPlayer, setRegion } from './views/top.js';
 import { heroList, heroPage } from './views/hero.js';
 
@@ -19,7 +19,18 @@ async function route() {
   if (lastHash !== location.hash) { app.innerHTML = skeleton(); lastHash = location.hash; window.scrollTo(0, 0); }
   try {
     await loadAssets();
-    const html = await view(args);
+    // Les vues peuvent afficher une première version avant d'avoir toutes leurs données.
+    // Elle n'apparaît que si la page complète tarde (> 80 ms), pour éviter les clignotements ;
+    // après l'affichage final, une mise à jour (ex. matchs complémentaires) s'applique tout de suite.
+    let done = false, timer = null;
+    const paint = html => {
+      if (token !== navToken) return;
+      if (done) { app.innerHTML = html; return; }
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (token === navToken && !done) app.innerHTML = html; }, 80);
+    };
+    const html = await view(args, paint);
+    done = true; clearTimeout(timer);
     if (token !== navToken || html == null) return;
     app.innerHTML = html;
   } catch (e) {
@@ -59,6 +70,22 @@ document.addEventListener('click', e => {
   if (act === 'more') { playerState.limit += 30; route(); }
   if (act === 'retry') { clearCache(); route(); }
 });
+
+// Préchargement : dès qu'un lien est survolé ou touché, on lance ses requêtes.
+const warmed = new Set();
+function warm(e) {
+  const a = e.target.closest?.('a[href^="#/"]'); if (!a) return;
+  const h = a.getAttribute('href'); if (warmed.has(h)) return;
+  warmed.add(h);
+  loadAssets().then(() => {
+    let m;
+    if ((m = h.match(/^#\/player\/(\d+)/))) prefetchPlayer(m[1]);
+    else if ((m = h.match(/^#\/match\/(\d+)/))) prefetchMatch(m[1]);
+  }).catch(() => {});
+}
+document.addEventListener('mouseover', warm, { passive: true });
+document.addEventListener('touchstart', warm, { passive: true });
+document.addEventListener('focusin', warm);
 
 installImageFallback();
 route();

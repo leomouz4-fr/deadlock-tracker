@@ -27,15 +27,26 @@ export async function getJSON(url, ttl = 60_000) {
       const e = new Error(msg); e.status = r.status; throw e;
     }
   })();
-  cache.set(url, { t: Date.now(), p });
-  p.catch(() => cache.delete(url));
+  const entry = { t: Date.now(), p, done: false, v: undefined };
+  cache.set(url, entry);
+  p.then(v => { entry.done = true; entry.v = v; }, () => cache.delete(url));
   return p;
 }
 
-export function api(path, params = {}, ttl) {
+const buildUrl = (path, params = {}) => {
   const u = new URL(API + path);
   for (const [k, v] of Object.entries(params)) if (v !== '' && v != null) u.searchParams.set(k, v);
-  return getJSON(u.toString(), ttl);
+  return u.toString();
+};
+
+// Réponse déjà en mémoire (sinon undefined) : permet d'afficher tout de suite ce qu'on a.
+export function peek(path, params) {
+  const e = cache.get(buildUrl(path, params));
+  return e?.done ? e.v : undefined;
+}
+
+export function api(path, params = {}, ttl) {
+  return getJSON(buildUrl(path, params), ttl);
 }
 
 export const clearCache = () => cache.clear();

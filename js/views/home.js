@@ -1,5 +1,5 @@
 import { api, parseAccount } from '../api.js';
-import { esc, img, num, badge } from '../ui.js';
+import { esc, img, num, badge, skeleton } from '../ui.js';
 import { topBlock } from './top.js';
 import { findHero } from '../assets.js';
 
@@ -18,15 +18,18 @@ const searchForm = (q = '') => `<form class="hero-search" data-form="search" rol
   <input name="q" value="${esc(q)}" placeholder="Joueur, SteamID ou héros" autocomplete="off" autocapitalize="off" required aria-label="Rechercher un joueur">
   <button class="btn">Chercher</button></form>`;
 
-export async function home() {
+export async function home(args, paint) {
   const recent = recentProfiles();
-  return `<h1>Vos stats Deadlock</h1>
+  const page = top => `<h1>Vos stats Deadlock</h1>
   <p class="sub">Cherchez un joueur, ou un héros (ex. « Lash ») pour voir ses meilleurs joueurs.</p>
   ${searchForm()}
   <p class="muted" style="font-size:13px;margin:0">Astuce : le SteamID ou l’URL /profiles/7656… est le plus fiable. Les URL personnalisées (/id/…) ne sont pas reconnues.</p>
   ${recent.length ? `<h2>Profils récents</h2><div class="list">${recent.map(p =>
     `<a class="row" href="#/player/${p.id}">${img(p.av, 'hi', '', 36)}<span class="grow"><span class="name">${esc(p.name)}</span></span><span class="muted">›</span></a>`).join('')}</div>` : ''}
-  ${await topBlock()}`;
+  ${top}`;
+  const top = topBlock();
+  paint?.(page('<h2>Top 50 des joueurs</h2>' + skeleton(4)));
+  return page(await top);
 }
 
 export async function search([q = '']) {

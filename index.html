@@ -6,11 +6,21 @@
   <title>Deadlock Tracker</title>
   <meta name="description" content="Deadlock Tracker : profil joueur, rang, historique de matchs et détail des parties.">
   <meta name="theme-color" content="#0e0d0b">
-  <link rel="preconnect" href="https://api.deadlock-api.com">
+  <link rel="preconnect" href="https://api.deadlock-api.com" crossorigin>
   <link rel="preconnect" href="https://assets-bucket.deadlock-api.com">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/match.css">
   <link rel="stylesheet" href="css/heroes.css">
+  <!-- Charge tous les modules en parallèle au lieu de les découvrir un par un. -->
+  <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/api.js">
+  <link rel="modulepreload" href="js/assets.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/views/home.js">
+  <link rel="modulepreload" href="js/views/top.js">
+  <link rel="modulepreload" href="js/views/player.js">
+  <link rel="modulepreload" href="js/views/match.js">
+  <link rel="modulepreload" href="js/views/hero.js">
 </head>
 <body>
   <header class="top">
