@@ -8,7 +8,7 @@ export const heroes = new Map();
 export const items = new Map();
 export const ranks = new Map();
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const TTL = 12 * 3600_000;
 
 function readCache(key) {
@@ -41,10 +41,12 @@ export function loadAssets() {
           id: x.id, name: x.name,
           active: !!x.player_selectable && !x.disabled && !x.in_development,
           img: im.icon_image_small_webp || im.icon_image_small || im.icon_hero_card_webp || im.icon_hero_card || im.minimap_image_webp || '',
+          card: im.icon_hero_card_webp || im.icon_hero_card || im.icon_image_small_webp || '',
         };
       }),
       load('items', '/v1/assets/items/by-type/upgrade', x => ({
         id: x.id, name: x.name, cost: x.cost || 0, tier: x.item_tier, slot: x.item_slot_type,
+        cls: x.class_name, parts: x.component_items || [], active: !!x.is_active_item,
         img: x.shop_image_small_webp || x.shop_image_webp || x.shop_image || x.image_webp || x.image || '',
       })),
       load('ranks', '/v1/assets/ranks', x => ({ tier: x.tier, name: x.name, color: x.color, images: x.images || {} })),
@@ -57,6 +59,16 @@ export function loadAssets() {
 
 export const heroName = id => heroes.get(id)?.name || `Héros ${id}`;
 export const heroImg = id => LOCAL_IMAGES.heroes[id] || heroes.get(id)?.img || '';
+export const heroCard = id => LOCAL_IMAGES.heroes[id] || heroes.get(id)?.card || heroImg(id);
+
+// "lash", "Mo & Krill", "mo et krill", "lady geist" → héros correspondant (actifs uniquement).
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/&/g, 'et').replace(/[^a-z0-9]/g, '');
+export function findHero(q) {
+  const n = norm(q); if (n.length < 2) return null;
+  const list = [...heroes.values()].filter(h => h.active);
+  return list.find(h => norm(h.name) === n) || (n.length >= 3 ? list.find(h => norm(h.name).startsWith(n)) : null) || null;
+}
+export const activeHeroes = () => [...heroes.values()].filter(h => h.active).sort((a, b) => a.name.localeCompare(b.name));
 export const itemImg = id => LOCAL_IMAGES.items[id] || items.get(id)?.img || '';
 
 // badge = palier * 10 + sous-rang (ex. 44 = Sentinel IV). Sous-rangs affichés I à VI comme en jeu.

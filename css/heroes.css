@@ -1,0 +1,16 @@
+/* héros */
+.hero-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.hero-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; }
+.hero-card:hover { border-color: var(--accent); color: inherit; }
+.hero-card .card-img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; background: var(--panel2); }
+.hero-card .hn { font-weight: 700; padding: 8px 10px 0; font-size: 14px; }
+.hero-card .hw { padding: 0 10px 8px; font-size: 13px; }
+.hero-av { object-fit: cover; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 7px 10px; border-radius: 8px; color: var(--muted); font-weight: 600; font-size: 14px; }
+.nav a:hover { color: var(--text); background: var(--panel2); }
+
+@media (max-width: 720px) {
+  .mini-search input { max-width: 140px; }
+  .nav a { padding: 7px 6px; }
+}

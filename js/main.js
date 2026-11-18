@@ -1,13 +1,14 @@
 // Routeur (#/…), chargement des assets et gestion des évènements.
 import { parseAccount, clearCache } from './api.js';
-import { loadAssets } from './assets.js';
+import { loadAssets, findHero } from './assets.js';
 import { skeleton, errorBox, installImageFallback, onSortClick } from './ui.js';
 import { home, search } from './views/home.js';
 import { player, state as playerState } from './views/player.js';
 import { match } from './views/match.js';
 import { topPlayer, setRegion } from './views/top.js';
+import { heroList, heroPage } from './views/hero.js';
 
-const views = { '': home, search, player, match, top: topPlayer };
+const views = { '': home, search, player, match, top: topPlayer, heroes: heroList, hero: heroPage };
 const app = document.getElementById('app');
 let navToken = 0, lastHash = null;
 
@@ -41,7 +42,8 @@ document.addEventListener('submit', e => {
   e.preventDefault();
   const q = f.q.value.trim(); if (!q) return;
   const id = parseAccount(q);
-  location.hash = id ? '#/player/' + id : '#/search/' + encodeURIComponent(q);
+  const hero = !id && findHero(q);
+  location.hash = id ? '#/player/' + id : hero ? '#/hero/' + hero.id : '#/search/' + encodeURIComponent(q);
   f.q.blur();
 });
 

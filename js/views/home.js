@@ -1,6 +1,7 @@
 import { api, parseAccount } from '../api.js';
 import { esc, img, num, badge } from '../ui.js';
 import { topBlock } from './top.js';
+import { findHero } from '../assets.js';
 
 export function recentProfiles() {
   try { return JSON.parse(localStorage.getItem('dlt:recent')) || []; } catch { return []; }
@@ -14,13 +15,13 @@ export function rememberProfile(p) {
 }
 
 const searchForm = (q = '') => `<form class="hero-search" data-form="search" role="search">
-  <input name="q" value="${esc(q)}" placeholder="Pseudo Steam, SteamID ou URL de profil" autocomplete="off" autocapitalize="off" required aria-label="Rechercher un joueur">
+  <input name="q" value="${esc(q)}" placeholder="Joueur, SteamID ou héros" autocomplete="off" autocapitalize="off" required aria-label="Rechercher un joueur">
   <button class="btn">Chercher</button></form>`;
 
 export async function home() {
   const recent = recentProfiles();
   return `<h1>Vos stats Deadlock</h1>
-  <p class="sub">Cherchez un joueur pour voir son rang, ses héros et son historique de matchs.</p>
+  <p class="sub">Cherchez un joueur, ou un héros (ex. « Lash ») pour voir ses meilleurs joueurs.</p>
   ${searchForm()}
   <p class="muted" style="font-size:13px;margin:0">Astuce : le SteamID ou l’URL /profiles/7656… est le plus fiable. Les URL personnalisées (/id/…) ne sont pas reconnues.</p>
   ${recent.length ? `<h2>Profils récents</h2><div class="list">${recent.map(p =>
@@ -31,6 +32,8 @@ export async function home() {
 export async function search([q = '']) {
   const id = parseAccount(q);
   if (id) { location.hash = '#/player/' + id; return null; }
+  const hero = findHero(q);
+  if (hero) { location.replace('#/hero/' + hero.id); return null; }
   let res = [];
   try { res = await api('/v1/players/steam-search', { search_query: q, limit: 30 }, 60_000); }
   catch (e) { if (e.status !== 404) throw e; }

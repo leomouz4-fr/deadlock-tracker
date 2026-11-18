@@ -1,0 +1,21 @@
+/* timeline d'items */
+.who-pick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.who-pick a { border: 2px solid transparent; border-radius: 9px; padding: 1px; opacity: .55; }
+.who-pick a.on { border-color: var(--accent); opacity: 1; }
+.who-pick a:hover { opacity: 1; }
+.who-pick .sep { width: 1px; background: var(--line); margin: 0 4px; }
+.lanes { position: relative; padding: 6px 0 22px; }
+.lane { position: relative; height: 34px; border-bottom: 1px dashed var(--line); margin-left: 70px; }
+.lane > b { position: absolute; left: -70px; top: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.lane > span { position: absolute; top: 4px; transform: translateX(-50%); }
+.lane > span:hover { z-index: 2; }
+.lane .ii { width: 24px; height: 24px; border: 1px solid var(--line); }
+.lane .ii.gone { opacity: .35; }
+.ticks { position: relative; margin-left: 70px; height: 16px; font-size: 11px; color: var(--muted); }
+.ticks span { position: absolute; transform: translateX(-50%); top: 2px; }
+.slot-weapon { color: #e8964a; } .slot-vitality { color: #7cc46a; } .slot-spirit { color: #b58cf0; }
+.lane.slot-weapon .ii { border-color: #e8964a; } .lane.slot-vitality .ii { border-color: #7cc46a; } .lane.slot-spirit .ii { border-color: #b58cf0; }
+.tl .row { gap: 10px; }
+.tl .time { width: 46px; flex: none; font-weight: 700; color: var(--muted); }
+.tl .tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); white-space: nowrap; }
+.tl .tag.buy { color: var(--win); } .tl .tag.sell { color: var(--loss); } .tl .tag.up { color: var(--accent); }
